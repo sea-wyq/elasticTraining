@@ -22,7 +22,6 @@ spec:
           ports:
             - containerPort: 7777
 ---
-
 apiVersion: v1
 kind: Service
 metadata:
@@ -38,7 +37,23 @@ spec:
       port: 8080
       targetPort: 7777
 ---
-
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: elastic-sm 
+  namespace: default 
+spec:
+  endpoints:
+  - interval: 5s
+    port: http
+    path: /metrics
+  namespaceSelector:
+    matchNames:
+    - default
+  selector:
+    matchLabels:
+      app: prometheus-elastic
+---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
@@ -47,11 +62,7 @@ rules:
   - apiGroups: [""]
     resources: ["pods"]
     verbs: ["get","list"]
-  - apiGroups: ["monitoring.hero.ai"]
-    resources: ["*"]
-    verbs: ["get","list"]
 ---
-
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:
@@ -66,7 +77,6 @@ subjects:
     name: elastic-sa
     namespace: default
 ---
-
 apiVersion: v1
 kind: ServiceAccount
 metadata:
